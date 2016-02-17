@@ -1,0 +1,415 @@
+<!--
+ * SARA interface
+ *
+ * Copyright(c) 2016 Fanyo Siliadin
+ * Released under the MIT license
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="app_layout.css">
+		
+		<title> SARA </title>
+		<script src="underscore.js"></script>
+		<script src="jquery.js"></script>
+		<script>
+			$(document).bind('mobileinit',function(){
+				$.mobile.changePage.defaults.changeHash = false;
+				$.mobile.hashListeningEnabled = false;
+				$.mobile.pushStateEnabled = false;
+			});
+		</script>
+		<script src="jquery_mobile.js"></script>
+		<script src="backbone.js"></script>
+		<script src="canvasjs.min.js"></script>
+		<script src="papaparse.min.js"></script>
+
+	</head>
+	
+	<body>
+		
+			<div data-role="page" style=" background-image: url('img_etang.png'); background-attachment: fixed; background-repeat: no-repeat; background-size: 100% 100%;" >
+				
+				<div data-role="header">
+					<div class="ui-grid-a" style="height:290px; background-image: url('img_etang.png'); background-attachment: fixed; background-repeat: no-repeat; background-size: 100% 100%;">
+						<div class="ui-block-a">
+							<div class="ui-bar ui-bar-a" style="height:290px;background-image: url('img_etang.png'); background-attachment: fixed; background-repeat: no-repeat; background-size: 100% 100%;">
+								<img alt="sara_logo" id="tree_img" src="logo-sara.png" height=100% width=35%/>
+								<div id="profile_management_panel" style="height:90%; width:60%; background:rgba(204, 255, 204,0.1); display:none; border: 5px outset rgba(0,0,0,0.6); border-top: hidden; border-radius:0 0 30px 30px;position: absolute; left:35%; top:0px"> <!-- displayed on click on sara logo -->
+									<button id="help" data-theme="c" data-mini="true" data-corners="false"> Profile management (Help) </button><br>
+									<div class="ui-grid-a">
+											<div class="ui-block-a">
+												<span>  Executed profile: </span>
+											</div>
+											<div class="ui-block-b" >
+												<div id="executing_profile_display"><script type="text/template" id="executing_profile"><%=name%></script></div>
+											</div>
+									</div><br>
+									<div class="ui-grid-c">
+											<div class="ui-block-a">
+												<select id="profiles_list" name="select-native-2" data-mini="true" data-theme="g">
+													<option value="0">My profiles</option>
+												</select>
+											</div>
+											<div class="ui-block-b" >
+												<button data-theme="g" id="open_profile" data-mini="true">Open</button>
+											</div>
+											<div class="ui-block-c" >
+												<button data-theme="g" id="apply_profile" data-mini="true">Execute</button>
+											</div>
+											<div class="ui-block-d">
+												<button data-theme="g" id="delete_profile" data-mini="true">Remove</button>
+											</div>
+									</div>    
+									<div>
+										<button id="create_profile" class="ui-btn ui-shadow"data-inline="false" data-theme="g">Create a new profile</button>
+									</div>
+									<form name="upload_profil" method="POST" action= "profiles_pluging.js" enctype="multipart/form-data" class="ui-btn">
+										<span class="ui-btn-text ui-btn-inner">Import profile</span>
+										<input type="file" name="profile" id="uploaded_profile" />
+									</form>
+								</div> <!-- profile management panel -->
+							</div>
+						</div> <!-- block a -->
+						
+						<div class="ui-block-b" >
+							<div class="ui-bar ui-bar-a" style="height:290px; background: rgba(2,0,0,.4);">
+								<script type="text/template" id="lighting_rendering"><%=value%> </script>
+								<script type="text/template" id="temp_air_rendering"><%=value%> <%=unit%></script>
+								<script type="text/template" id="temp_ground_rendering"><%=value%> <%=unit%></script>
+								<script type="text/template" id="hum_air_rendering"><%=value%> <%=unit%></script>
+								<script type="text/template" id="hum_ground_rendering"><%=value%> <%=unit%></script>
+								
+								LIGHTING:<div id="lighting"></div>
+								TEMPERATURE-AIR:<div id="Temperature-air"></div>
+								TEMPERATURE-GROUND:<div id="Temperature-ground"></div>
+								HUMIDITY-AIR:<div id="humidity-air"></div>
+								HUMIDITY-GROUND:<div id="Humidity-ground"></div>
+							</div>
+						</div> <!--block b-->
+					</div>
+					<div data-role="popup" id="profile_frame"data-overlay-theme="a" data-transition="slidedown"> <!--The frame that is displayed when you open the editor by clicking on "open" or "create a new profile" button in the profile management frame -->
+						<div class="ui-grid-d" id="profil_header">
+								<div class="ui-block-a">
+									Name: 
+									<textarea readonly class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset"  maxlength="35" name="textarea" id="profile_name" rows="1" cols="10"></textarea>
+								</div>
+								<div class="ui-block-b" >
+								</div>
+								<div class="ui-block-c" >
+									Description:
+									<textarea readonly class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset"  maxlength="100" name="textarea" id="profile_description" rows="4" cols="10"></textarea>
+								</div>
+								<div class="ui-block-d" >
+								</div>
+								<div class="ui-block-e" >
+									Execution step (in minutes):
+									<input readonly type="text" id="execution_step">
+								</div>
+						</div>
+						
+						<table id="profile_table">
+							<thead>
+								<tr>
+									<th>RED</th>
+									<th>IR</th>
+									<th>WHITE</th>
+									<th>BLUE</th>
+									<th>T_AIR</th>
+									<th>H_GROUND</th>
+									<th>WATER</th>
+									<th>N</th>
+									<th>P</th>
+									<th>K</th>
+									<th>n° line</th>
+									<th onclick="add_line(0);">action</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table><br><br>
+						<script type="text/javascript">
+							var delete_line= function(l){
+								document.getElementById("profile_table").deleteRow(l);
+								update_ID(l,"removing");
+								var profile_to_display= read_profile_array();
+								fill_table(profile_to_display);
+								profile_header_access(true);
+								profile_data_access(true);
+							}
+							var add_line= function(l){
+								var profile;
+								insert_line(l+1,profile, true);
+								var profile_to_display= read_profile_array();
+								fill_table(profile_to_display);
+								profile_header_access(true);
+								profile_data_access(true);									
+							}
+							$( "#profile_frame" ).on({
+								popupbeforeposition: function() {
+									var h = $( window ).height();
+									var w = $( window ).width();
+									$( "#profile_frame" ).css( "width", w );
+									$( "#profile_frame" ).css( "height", h );
+								}
+							});
+						</script>
+						
+						<div class="ui-grid-b" >
+							<div class="ui-block-a">
+								<button id="edit_profile"data-theme="a">Edit</button>
+							</div>
+							<div class="ui-block-b" >
+								<button id="save_profile"data-theme="a">Save</button>
+							</div>
+							<div class="ui-block-c" >
+								<button id="quit_profile_panel"data-theme="a">Quit</button>
+							</div>
+						</div>
+						
+					</div> <!--profile editor frame-->
+
+				</div><!--$header-->
+						
+				<div data-role="body" style=" height:360px; background-image: url('img_etang.png'); background-attachment: fixed; background-repeat: no-repeat; background-size: 100% 100%;" >
+					<form>
+						<fieldset data-role="controlgroup" data-type="horizontal"style="position: relative; left: 42%; top: 200px;">
+						    <a href="#chartpopup" data-transition="flip" data-rel="popup">
+								<input href="#chartpopup" data-transition="pop" data-rel="popup" type="radio" name="radio-choice-h-2" id="radio-choice-h-2a" value="chart">
+							</a>
+						    <label for="radio-choice-h-2a"> Display charts </label>
+							<a href="#mixturePanel" data-transition="slideup" data-rel="popup" >
+								<input type="radio" name="radio-choice-h-2" id="radio-choice-h-2b" value="mixture">
+							</a>
+						    <label for="radio-choice-h-2b">Compose a mixture</label>
+						</fieldset>
+					</form>
+					<div id="chartpopup" data-role="popup" data-position-to="window" style="width:950px; height:410px; background: rgba(0,0,0,.5);"> <!-- The panel that pops up when you click on the button "display chart" -->
+						<form>
+								<div class="ui-field-contain">
+									<select data-theme="a" name="select-native-2" id="chart_variable" data-mini="true">
+										<option value="TempAir">Temperature of the air</option>
+										<option value="TempGround">Temperature of the ground</option>
+										<option value="HumAir">Humidity of the air</option>
+										<option value="HumGround">Humidity of the ground</option>
+										<option value="Light">Lighting</option>
+									</select>
+								</div>
+						</form>
+
+						<div id="chartContainer" style="height: 290px; width: 100%;">
+						</div>
+						<div id="chartContainer2" style="height: 290px; width: 100%;">
+						</div>
+						<div id="chartContainer3" style="height: 290px; width: 100%;">
+						</div>
+						<div id="chartContainer4" style="height: 290px; width: 100%;">
+						</div>
+						<div id="chartContainer5" style="height: 290px; width: 100%;">
+						</div>
+
+						<select name="select-native-2" id="display_period" data-mini="true" data-theme="a">
+							<option value="1000">refresh every second</option>
+							<option value="30000">refresh every 30 seconds</option>
+							<option value="60000">refresh every minute</option>
+							<option value="300000">refresh every 5 minutes</option>
+						</select>
+					</div><!--charts panel -->		
+						
+					<div   data-transition="slideup" data-rel="popup" data-role="popup" id="mixturePanel" data-corners="false" data-theme="none" data-shadow="false" data-tolerance="0,0" > <!--the side panel that pops up when you click on "compose mixture" -->
+						<script type="text/template" id="mixture_template" >	
+							<form>
+								<label class="ui-input-text" for="mixture_water">Quantity of water in ml</label>
+								<input class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset" id="mixture_water" value=<%=water_volume%> placeholder="Quantity of water in ml" type="text">
+								<label class="ui-input-text" for="mixture_nitrogen">Quantity of nitrogen in ml</label>
+								<input class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset" id="mixture_nitrogen" value=<%=nitrogen_volume%>  placeholder="Quantity of nitrogen in ml" type="text">
+								<label class="ui-input-text" for="mixture_phosphore">Quantity of phosphore in ml</label>
+								<input class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset" id="mixture_phosphore" value=<%=phosphore_volume%>  placeholder="Quantity of phosphore in ml" type="text">
+								<label class="ui-input-text" for="mixture_potassium">Quantity of potassim in ml</label>
+								<input class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset" id="mixture_potassium" value=<%=potassium_volume%>  placeholder="Quantity of potassium in ml" type="text">
+							</form>
+							
+							<label class="ui-input-text" for="mixture_name">Name:</label>
+							<textarea class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset"  maxlength="35" name="textarea" id="mixture_name" rows="1" cols="10"><%=name%></textarea>
+							<label class="ui-input-text" for="mixture_description">Description:</label>
+							<textarea class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset" maxlength="250" name="textarea" id="mixture_description" rows="20" cols="10"><%=description%></textarea>
+								
+							<div   id="add_mixture_button" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" data-theme="c" data-iconpos="null" data-icon="null"  data-shadow="true" data-corners="true">
+								<span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Add</span></span>
+								<button  class="ui-btn ui-mini ui-btn-hidden ui-btn-up-undefined" >Add</button>
+							</div>
+
+							<form>
+								<div class="ui-field-contain">
+									<label class="ui-select" for="Mixture_list2">My mixtures </label>
+									<div class="ui-select">
+										<div class="ui-btn ui-shadow ui-btn-corner-all ui-mini ui-btn-icon-right ui-btn-up-c" data-mini="true" data-theme="c" data-iconpos="right" data-icon="arrow-d" data-wrapperels="span" data-iconshadow="true" data-shadow="true" data-corners="true">
+											<span class="ui-btn-inner ui-btn-corner-all">
+												<span class="ui-btn-text">
+													<span id="choice">Choose</span>
+												</span>
+												<span class="ui-icon ui-icon-arrow-d ui-icon-shadow"></span>
+											</span>
+											<select id="Mixture_list" name="select-native-2" id="liste_mixture2" data-mini="true">
+												<option value="0">Choose</option>
+												
+											</select>
+										</div>
+									</div>
+								</div>
+							</form>
+							
+							<div class="ui-corner-all ui-controlgroup ui-controlgroup-horizontal" data-role="controlgroup" data-type="horizontal">
+								<div class="ui-controlgroup-controls">
+									<div  id="edit_mixture_button" aria-disabled="false" class="ui-btn ui-corner-left ui-btn-up-c" data-theme="c" data-iconpos="null" data-icon="null" data-wrapperels="span" data-iconshadow="true" data-shadow="true" data-corners="true">
+										<span class="ui-btn-inner ui-corner-left">
+											<span class="ui-btn-text">Edit</span>
+										</span>
+										<button aria-disabled="false" class="ui-btn ui-mini ui-corner-all ui-btn-hidden ui-btn-up-undefined">Edit</button>
+									</div>
+									<div id ="delete_mixture_button" aria-disabled="false" class="ui-btn ui-btn-up-c" data-theme="c" data-iconpos="null" data-icon="null" data-wrapperels="span" data-iconshadow="true" data-shadow="true" data-corners="true">
+										<span class="ui-btn-inner ui-corner-right ui-controlgroup-last">
+											<span class="ui-btn-text">Remove</span>
+										</span>
+										<button aria-disabled="false" class="ui-btn ui-mini ui-corner-all ui-btn-hidden ui-corner-right ui-controlgroup-last ui-btn-up-undefined">Remove</button>
+									</div>
+								</div>
+							</div>
+						</script>
+						<script type="text/javascript">
+							$( "#mixturePanel" ).on({
+							popupbeforeposition: function() {
+								var h = $( window ).height();
+
+								$( "#mixturePanel" ).css( "height", h );
+							}
+						});
+						</script>
+						
+						
+								
+					</div> <!--Mixture panel -->
+		
+				</div><!--$body-->
+				
+				<div data-role="footer"style="background-image: url('img_etang.png'); background-attachment: fixed; background-repeat: no-repeat; background-size: 100% 100%; " data-theme="a">
+					<div data-role="controlgroup" data-type="vertical" style="width:50%; position: relative; left:25%;">
+					    <a href="#LightPopup" data-transition="pop" data-rel="popup"><button id ="lighting_button" class="ui-btn ui-shadow"data-inline="false">Enlighten</button></a>
+					    <a href="#SprayPopup" data-rel="popup" data-transition="slide"><button id="spray_button" class="ui-btn ui-shadow"data-inline="false">Spray</button></a>
+					    <a href="#HeatPopup" data-transition="pop" data-rel="popup"><button class="ui-btn ui-shadow"data-inline="false">Heat</button></a>
+					    <a href="#WindPopup" data-transition="pop" data-rel="popup"><button class="ui-btn ui-shadow"data-inline="false">Ventilate</button></a>
+					</div>
+				<div id="LightPopup" data-role="popup" style="background: rgba(2,0,0,.7);"> <!-- The panel that pops up when you click on the button "Enlighten" -->
+					<label for="red_intensity">Red:</label>
+					<input type="range" name="slider" id="red_intensity" value="" min="0" max="100" data-highlight="true">
+					<label for="infrared_intensity">Infra red:</label>
+					<input type="range" name="slider" id="infrared_intensity" value="" min="0" max="100" data-highlight="true">
+					<label for="white_intensity">White:</label>
+					<input type="range" name="slider" id="white_intensity" value="" min="0" max="100" data-highlight="true">
+					<label for="blue_intensity">Blue:</label>
+					<input type="range" name="slider" id="blue_intensity" value="" min="0" max="100" data-highlight="true">
+					<button id="validate_lighting_order" class="ui-btn ui-mini">Validate</button>
+				</div> <!--LightPopup-->
+
+				<div id="HeatPopup" data-role="popup" style="background: rgba(2,0,0,.7);"> <!-- The panel that pops up when you click on the button "Heat" -->
+					<label for="heat">+ x °C:</label>
+					<input type="range" name="slider" id="heat" value="0" min="0" max="10" data-highlight="true">
+					<button id="validate_heating_order" class="ui-btn ui-mini">Validate</button>
+				</div> <!--HeatPopup-->
+
+				<div id="WindPopup" data-role="popup"style="background: rgba(2,0,0,.7);"> <!-- The panel that pops up when you click on the button "Ventilate" -->
+					<select name="select-native-2" id="WindIntensity" data-mini="true">
+						<option value="Soft" id="test">Soft</option>
+						<option value="Medium">Medium</option>
+						<option value="Hard">Hard</option>
+					</select>
+					<button id="validate_refreshing_order" class="ui-btn ui-mini">Validate</button>
+				</div> <!--WindIntensity-->
+						
+				<div data-role="popup" id="SprayPopup" data-corners="false" data-theme="none" data-shadow="false" data-tolerance="0,0" > <!-- The panel that pops up when you click on the button "Spray" -->
+					<div id="composition">
+						 <input type="text"  id="WaterToSpray" value="" placeholder="Quantity of water in ml">
+						<label for="WaterToSpray">ml of water</label>
+						 <input type="text"  id="NitrogenToSpray" value="" placeholder="Quantity of nitrogen in ml">
+						<label for="NitrogenToSpray">ml of nitrogen</label>
+						 <input type="text"  id="PhosphoreToSpray" value="" placeholder="Quantity of phosphore in ml">
+						<label for="PhosphoreToSpray">ml of phosphore</label>
+						 <input type="text"  id="PotassiumToSpray" value="" placeholder="Quantity of potassium in ml">
+						<label for="PotassiumToSpray">ml of potassium</label>
+					</div>
+					<select name="select-native-2" id="Mixture_list2" data-mini="true">
+						<option value="0">Choose</option>
+					</select>
+					<button id="validate_spray_order" class="ui-btn ui-mini">Validate</button>
+
+				</div><!--panel-arrosage-->
+
+				</div><!--$footer-->
+<!------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->				
+				
+						
+						
+				
+				
+			</div><!--page-->	
+		
+	</body>
+		
+	<style>	
+		#mixturePanel-popup {
+				right: 0 !important;
+				left: auto !important;
+			}
+		#mixturePanel {
+				width: 300px;
+				border: 1px solid #000;
+				border-right: none;
+				background: rgba(0,0,0,.5);
+				margin: -1px 0;
+			}
+		#mixturePanel .ui-btn {
+				margin: 2em 15px;
+			}
+		
+		#SprayPopup-popup {
+			right: 0 !important;
+			left: auto !important;
+		}
+		#SprayPopup {
+			width: 300px;
+			border: 1px solid #000;
+			border-right: none;
+			background: rgba(0,0,0,.5);
+			margin: -1px 0;
+		}
+		#SprayPopup .ui-btn {
+			margin: 2em 15px;
+		}
+		#profile_frame-popup {
+			left: 0 !important;
+			right: auto;
+		}
+		#profile_frame {
+			border: none;
+			background: rgba(0,0,0,.7);
+		}
+		#profile_table{
+		   overflow-y:scroll;
+		   overflow-x:scroll;
+		   width: 100%;
+		   height:70%;
+		   display:block;
+		}
+	</style>
+
+	<script src= "Measures.js"></script>
+	<script src= "Mixtures.js"></script>
+	<script src= "direct_actions.js"></script>
+	<script src="profiles_pluging.js"></script>
+	<script src="profile_management_utils.js"></script>
+		
+</html>
