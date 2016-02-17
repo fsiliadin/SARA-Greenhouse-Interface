@@ -13,7 +13,7 @@ with backbone and jquery the code sources are very simple so you can easily add 
 Features
 
 	Profile management: (to open the profile managment panel, click on the logo)
-						A profile is a csv file whose rows are tasks. 
+						A profile is a csv file whose rows are tasks. See an example of profile: "Tomato during day of summer.csv" 
 						Each task is an instruction of lighting, irrigation, temperature and humidity of the ground and of the air
 						in order to simulate a climatic and nutritional environment.
 						Of course you can customize your profile, see profile_management_utils.js and profile_pluging.js
