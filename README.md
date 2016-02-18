@@ -1,5 +1,4 @@
 # SARA-Greenhouse-Interface
-petit projet sympa réalisé avec Backbone et un peu de temps
 
 SARA Greenhouse Interface (SGI) is a Backbone/Jquery_mobile application firstly designed for a specific bioreactor named SARA (Serre Autonome à Rendement Accru)
 SGI's purpose is to offer a simple, reliable and user friendly interface to manage connected greenhouses. With SGI you can have the variables of your 
